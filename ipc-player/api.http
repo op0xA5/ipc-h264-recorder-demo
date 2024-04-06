@@ -1,0 +1,14 @@
+
+GET http://localhost:8082/api/playback?start=1712335200000&end=1712335800000
+
+###
+
+GET http://localhost:8082/
+
+###
+
+POST http://localhost:8082/api/realtime
+
+###
+
+GET http://localhost:8082/api/realtime?id=co8484m5fmag697tlrlg

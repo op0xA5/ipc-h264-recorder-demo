@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Player</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+
+<div>
+    <label for="start">From</label>
+    <input id="start" type="datetime-local" />
+    <label for="end">To</label>
+    <input id="end" type="datetime-local" />
+
+    <button id="play">Play Record</button>
+
+    <button id="realtime">Realtime</button>
+</div>
+
+<video id="video" controls height="600" width="800"></video>
+<script>
+    document.getElementById("play").addEventListener("click", function () {
+        var start = document.getElementById("start").value;
+        var end = document.getElementById("end").value;
+        var startMs = new Date(start).getTime();
+        var endMs = new Date(end).getTime();
+        console.log(startMs, endMs);
+        var videoUrl = "/api/playback?start=" + startMs + "&end=" + endMs;
+        var video = document.getElementById("video");
+        if (Hls.isSupported()) {
+            var hls = new Hls();
+            hls.loadSource(videoUrl);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                video.play();
+            });
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            video.src = videoUrl;
+            video.addEventListener("loadedmetadata", function () {
+                video.play();
+            });
+        }
+    });
+
+    document.getElementById("realtime").addEventListener("click", function () {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/realtime");
+        xhr.onreadystatechange = function () {
+            console.log(xhr.responseText);
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var id = JSON.parse(xhr.responseText).id;
+                console.log(id);
+
+                var videoUrl = "/api/realtime?id="+id;
+                var video = document.getElementById("video");
+                if (Hls.isSupported()) {
+                    var hls = new Hls();
+                    hls.loadSource(videoUrl);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                        video.play();
+                    });
+                } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+                    video.src = videoUrl;
+                    video.addEventListener("loadedmetadata", function () {
+                        video.play();
+                    });
+                }
+
+            }
+        };
+        xhr.send();
+
+    });
+</script>
+
+</body>
+</html>
