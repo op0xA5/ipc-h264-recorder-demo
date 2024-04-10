@@ -119,7 +119,7 @@ func realtimeHandler(w http.ResponseWriter, r *http.Request) {
 		var res []*schema.Record
 		for {
 			if realtime.LastStartAt == nil {
-				res, err = QueryRecordLast(realtime.Device, realtime.Stream, winsize+1)
+				res, err = QueryRecordLast(realtime.Device, realtime.Stream, winsize)
 			} else {
 				res, err = QueryRecordLastStartAt(realtime.Device, realtime.Stream, *realtime.LastStartAt, winsize)
 			}
@@ -127,7 +127,7 @@ func realtimeHandler(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
-			if len(res) < winsize {
+			if len(res) == 0 {
 				if time.Now().After(waitEnd) {
 					break
 				}
@@ -152,7 +152,6 @@ func realtimeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		playlist.SeqNo = uint64(realtime.SeqNo)
 		playlist.TargetDuration = 10
-		playlist.Closed = len(res) < winsize
 		for _, record := range res {
 			err := playlist.Append("/"+record.FileURL, record.Interval, "")
 			if err != nil {
